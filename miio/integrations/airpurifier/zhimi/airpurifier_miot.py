@@ -234,6 +234,29 @@ _MAPPING_ZA1 = {
     "gestures": {"siid": 15, "piid": 13},
 }
 
+#https://miot-spec.org/miot-spec-v2/instance?type=urn:miot-spec-v2:device:air-purifier:0000A007:zhimi-cpa4:1
+_MAPPING_CPA4 = {
+    # Air Purifier (siid=2)
+    "power": {"siid": 2, "piid": 1},
+    "mode": {"siid": 2, "piid": 4},
+    # Environment (siid=3)
+    "aqi": {"siid": 3, "piid": 4},
+    # Filter (siid=4)
+    "filter_life_remaining": {"siid": 4, "piid": 1},
+    "filter_hours_used": {"siid": 4, "piid": 3},
+    "filter_left_time": {"siid": 4, "piid": 4},
+    # Alarm (siid=6)
+    "buzzer": {"siid": 6, "piid": 1},
+    # Physical Control Locked (siid=8)
+    "child_lock": {"siid": 8, "piid": 1},    
+    # Indicator Light (siid=13)
+    "led_brightness": {"siid": 13, "piid": 2},
+    # Custom Service (siid=9)
+    "motor_speed": {"siid": 9, "piid": 1},
+    "favorite_level": {"siid": 9, "piid": 11},
+    # AQI
+     "aqi_realtime_update_duration": {"siid": 11, "piid": 4},
+}
 
 _MAPPINGS = {
     "zhimi.airpurifier.ma4": _MAPPING,  # airpurifier 3
@@ -251,6 +274,7 @@ _MAPPINGS = {
     "zhimi.airpurifier.rma1": _MAPPING_RMA1,  # airpurifier 4 lite
     "zhimi.airp.rmb1": _MAPPING_RMB1,  # airpurifier 4 lite
     "zhimi.airpurifier.za1": _MAPPING_ZA1,  # smartmi air purifier
+    "zhimi.airp.cpa4": _MAPPING_CPA4, # airpurifier 4 compact
 }
 
 # Models requiring reversed led brightness value
@@ -260,8 +284,8 @@ REVERSED_LED_BRIGHTNESS = [
     "zhimi.airp.mb5a",
     "zhimi.airp.vb4",
     "zhimi.airp.rmb1",
+    "zhimi.airp.cpa4",
 ]
-
 
 class OperationMode(enum.Enum):
     Unknown = -1
@@ -522,11 +546,17 @@ class AirPurifierMiot(MiotDevice):
         # so that we get always the most recent values. See #1281.
         if self.model == "zhimi.airpurifier.mb3":
             self.set_property("aqi_realtime_update_duration", 5)
+            
+        if self.model == "zhimi.airp.cpa4":
+            # cpa4 only supports requestion 1 prop max
+            maxprops = 1
+        else:
+            maxprops = 15
 
         return AirPurifierMiotStatus(
             {
                 prop["did"]: prop["value"] if prop["code"] == 0 else None
-                for prop in self.get_properties_for_mapping()
+                for prop in self.get_properties_for_mapping(max_properties=maxprops)
             },
             self.model,
         )
