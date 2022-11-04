@@ -548,8 +548,8 @@ class AirPurifierMiot(MiotDevice):
             self.set_property("aqi_realtime_update_duration", 5)
             
         if self.model == "zhimi.airp.cpa4":
-            # cpa4 only supports requestion 1 prop max
-            maxprops = 1
+            # cpa4 only supports three requests max
+            maxprops = 3
         else:
             maxprops = 15
 
